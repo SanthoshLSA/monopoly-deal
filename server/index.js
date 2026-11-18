@@ -2,11 +2,22 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { RoomManager } from './models/RoomManager.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDist = path.join(__dirname, '../client/dist');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+}
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -412,6 +423,15 @@ io.on('connection', (socket) => {
     }
   });
 });
+
+if (fs.existsSync(clientDist)) {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/health') || req.path.startsWith('/socket.io')) {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
