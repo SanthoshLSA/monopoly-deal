@@ -22,10 +22,12 @@ export function SocketProvider({ children }) {
   const [hoveredCard, setHoveredCard] = useState(null);
 
   useEffect(() => {
-    // Connect to server (same host on port 3001 or environment variable)
-    const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? `http://${window.location.hostname}:3001`
-      : window.location.origin;
+    // Connect to server (custom environment variable, localhost port 3001, or same origin)
+    const serverUrl = import.meta.env.VITE_SERVER_URL || (
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? `http://${window.location.hostname}:3001`
+        : window.location.origin
+    );
 
     const newSocket = io(serverUrl, {
       reconnectionAttempts: 10,
